@@ -92,13 +92,14 @@ def Q1(dataset):
     X, Y = numpy.array(X), numpy.array(Y)
     
     # 使用scikit-learn的LinearRegression拟合线性回归模型
-    model = linear_model.LinearRegression()
+    # fit_intercept=False 因为特征向量已经包含偏置项 [1, scaled_length]
+    model = linear_model.LinearRegression(fit_intercept=False)
     model.fit(X, Y)
     
-    # 获取回归系数: [截距, 长度系数]
-    # model.intercept_ 是模型的截距项
-    # model.coef_[1] 是scaled_length特征的系数
-    theta = [model.intercept_, model.coef_[1]]
+    # 获取回归系数: [theta_0, theta_1]
+    # model.coef_[0] 对应偏置项 (theta_0)
+    # model.coef_[1] 对应scaled_length的系数 (theta_1)
+    theta = model.coef_
     
     # 计算均方误差（MSE）
     MSE = numpy.mean((Y - model.predict(X)) ** 2)
@@ -124,9 +125,11 @@ def featureQ2(datum, maxLen):
     month = parsed_date.month if parsed_date else 1  # 1-12
     
     # One-hot encoding for weekday (6 features, dropping Monday=0)
-    day_features = [1 if weekday == i else 0 for i in [1, 2, 3, 4, 5, 6]]
+    # Keep Tuesday(1) through Sunday(6)
+    day_features = [1 if weekday == i else 0 for i in range(1, 7)]
     
     # One-hot encoding for month (11 features, dropping January=1)
+    # Keep February(2) through December(12)
     month_features = [1 if month == i else 0 for i in range(2, 13)]
     
     return [1, scaled_length] + day_features + month_features
@@ -145,7 +148,8 @@ def Q2(dataset):
     X2, Y2 = numpy.array(X2), numpy.array(Y2)
     
     # Train linear regression model
-    model = linear_model.LinearRegression()
+    # fit_intercept=False because features already include bias term [1, ...]
+    model = linear_model.LinearRegression(fit_intercept=False)
     model.fit(X2, Y2)
     
     # Calculate MSE
@@ -187,7 +191,8 @@ def Q3(dataset):
     X3, Y3 = numpy.array(X3), numpy.array(Y3)
     
     # Train linear regression model
-    model = linear_model.LinearRegression()
+    # fit_intercept=False because features already include bias term [1, ...]
+    model = linear_model.LinearRegression(fit_intercept=False)
     model.fit(X3, Y3)
     
     # Calculate MSE
