@@ -78,18 +78,19 @@ def Q1(dataset):
     # 获取数据集中最长评论的长度，用于特征缩放
     maxLen = getMaxLen(dataset)
     
-    # 可能的评分字段名称
-    rating_fields = ['rating', 'overall', 'stars', 'review/overall']
+    # 啤酒数据集中的评分字段名称
+    rating_fields = ['review/overall']
     
     # 创建特征矩阵X：每行是一个数据点的特征向量[1, scaled_length]
     X = [featureQ1(datum, maxLen) for datum in dataset]
     
     # 创建标签向量Y：每个数据点的评分
-    # next()函数找到第一个存在的评分字段，如果都不存在则返回0
-    Y = [next((datum[field] for field in rating_fields if field in datum), 0) for datum in dataset]
+    # 使用review/overall作为目标变量
+    Y = [datum.get('review/overall', 0) for datum in dataset]
     
     # 转换为numpy数组，便于矩阵运算
-    X, Y = numpy.array(X), numpy.array(Y)
+    X = numpy.array(X)
+    Y = numpy.array(Y)
     
     # 使用numpy的最小二乘法求解线性回归
     # lstsq求解方程 X * theta = Y，返回最优的theta参数
