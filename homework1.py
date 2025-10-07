@@ -65,13 +65,13 @@ def featureQ2(datum, maxLen):
         weekday = time_struct['wday']  # 0=Sunday, 6=Saturday
         month = time_struct['mon']  # 1-12
     else:
-        weekday, month = 0, 1  # Default values
+        weekday, month = 1, 1  # Default values (Monday, January)
     
-    # One-hot encoding for weekday (7 features)
-    day_features = [1 if weekday == i else 0 for i in range(7)]
+    # One-hot encoding for weekday (6 features, dropping Sunday=0)
+    day_features = [1 if weekday == i else 0 for i in range(1, 7)]
     
-    # One-hot encoding for month (10 features for months 1-10)
-    month_features = [1 if month == i else 0 for i in range(1, 11)]
+    # One-hot encoding for month (11 features, dropping December=12)
+    month_features = [1 if month == i else 0 for i in range(1, 12)]
     
     return [1, scaled_length] + day_features + month_features
 
