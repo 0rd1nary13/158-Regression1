@@ -19,8 +19,8 @@ def getMaxLen(dataset):
     Returns:
         int: 数据集中最长评论的字符数
     """
-    # 可能的文本字段名称
-    text_fields = ['review/text', 'text', 'review']
+    # 啤酒数据集中的文本字段名称
+    text_fields = ['review/text']
     
     # 遍历所有数据点和所有可能的文本字段，获取每个文本的长度
     lengths = [len(datum.get(field, '')) for datum in dataset for field in text_fields if field in datum]
@@ -43,8 +43,8 @@ def featureQ1(datum, maxLen):
     Returns:
         list: 特征向量 [1, scaled_length]
     """
-    # 可能的文本字段名称
-    text_fields = ['review/text', 'text', 'review']
+    # 啤酒数据集中的文本字段名称
+    text_fields = ['review/text']
     
     # 获取当前数据点的文本长度
     # next()函数找到第一个存在的文本字段并返回其长度，如果都不存在则返回0
@@ -113,7 +113,7 @@ def featureQ2(datum, maxLen):
     # Returns [1, scaled_length, day_features(7), month_features(12)]
     
     # Get text length and scale it
-    text_fields = ['review/text', 'text', 'review']
+    text_fields = ['review/text']
     text_len = next((len(datum[field]) for field in text_fields if field in datum), 0)
     scaled_length = text_len / maxLen if maxLen > 0 else 0
     
@@ -163,7 +163,7 @@ def featureQ3(datum, maxLen):
     # Returns [1, scaled_length, weekday, month] - direct numerical features
     
     # Get text length and scale it
-    text_fields = ['review/text', 'text', 'review']
+    text_fields = ['review/text']
     text_len = next((len(datum[field]) for field in text_fields if field in datum), 0)
     scaled_length = text_len / maxLen if maxLen > 0 else 0
     
@@ -252,7 +252,7 @@ def Q4(dataset):
 def featureQ5(datum, maxLen):
     # Implement
     # Returns [1, scaled_length] for beer review classification
-    text_fields = ['review/text', 'text', 'review']
+    text_fields = ['review/text']
     text_len = next((len(datum[field]) for field in text_fields if field in datum), 0)
     scaled_length = text_len / maxLen if maxLen > 0 else 0
     return [1, scaled_length]
@@ -334,7 +334,7 @@ def Q6(dataset):
 def featureQ7(datum, maxLen):
     # Implement (any feature vector which improves performance over Q5)
     # Enhanced features: scaled_length, beer style, ABV, appearance, aroma, taste, palate
-    text_fields = ['review/text', 'text', 'review']
+    text_fields = ['review/text']
     text_len = next((len(datum[field]) for field in text_fields if field in datum), 0)
     scaled_length = text_len / maxLen if maxLen > 0 else 0
     
