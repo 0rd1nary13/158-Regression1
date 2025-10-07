@@ -10,23 +10,31 @@ import math
 # %%
 def getMaxLen(dataset):
     """
-    找到数据集中最长的评论长度（字符数）
-    用于后续的特征缩放，确保所有长度特征都在0-1之间
+    Calculates the maximum length of a review text in the entire dataset.
     
     Args:
-        dataset: 包含评论数据的列表，每个元素是一个字典
+        dataset: The full list of data dictionaries.
         
     Returns:
-        int: 数据集中最长评论的字符数
+        int: The length of the longest review.
     """
-    # 支持多种数据集格式的文本字段名称
+    # These are the same fields your featureQ1 function checks
     text_fields = ['review/text', 'text', 'review']
     
-    # 遍历所有数据点和所有可能的文本字段，获取每个文本的长度
-    lengths = [len(datum.get(field, '')) for datum in dataset for field in text_fields if field in datum]
+    # Initialize max_len to 0
+    max_len = 0
     
-    # 返回最大长度，如果没有找到任何文本则返回0
-    return max(lengths) if lengths else 0
+    # Check every single item in the dataset
+    for datum in dataset:
+        # Find the length of the text field for the current item.
+        # Defaults to 0 if no text field is found.
+        current_len = next((len(datum[field]) for field in text_fields if field in datum), 0)
+        
+        # Update max_len if the current one is longer
+        if current_len > max_len:
+            max_len = current_len
+            
+    return max_len
 
 # %%
 def featureQ1(datum, maxLen):
