@@ -5,41 +5,101 @@ import numpy
 import math
 
 # %%
-### Question 1
+### Question 1 - 问题1：基于评论长度的线性回归
 
 # %%
 def getMaxLen(dataset):
-    # Find the longest review (number of characters)
+    """
+    找到数据集中最长的评论长度（字符数）
+    用于后续的特征缩放，确保所有长度特征都在0-1之间
+    
+    Args:
+        dataset: 包含评论数据的列表，每个元素是一个字典
+        
+    Returns:
+        int: 数据集中最长评论的字符数
+    """
+    # 可能的文本字段名称
     text_fields = ['review/text', 'text', 'review']
+    
+    # 遍历所有数据点和所有可能的文本字段，获取每个文本的长度
     lengths = [len(datum.get(field, '')) for datum in dataset for field in text_fields if field in datum]
+    
+    # 返回最大长度，如果没有找到任何文本则返回0
     return max(lengths) if lengths else 0
 
 # %%
 def featureQ1(datum, maxLen):
-    # Feature vector for one data point
-    # Returns [1, scaled_length] where scaled_length is between 0 and 1
+    """
+    为单个数据点创建特征向量
+    特征向量包含两个元素：[1, scaled_length]
+    - 1: 偏置项（bias term），用于线性回归的截距
+    - scaled_length: 缩放后的评论长度，范围在0-1之间
+    
+    Args:
+        datum: 单个数据点（字典）
+        maxLen: 数据集中最长评论的长度，用于缩放
+        
+    Returns:
+        list: 特征向量 [1, scaled_length]
+    """
+    # 可能的文本字段名称
     text_fields = ['review/text', 'text', 'review']
+    
+    # 获取当前数据点的文本长度
+    # next()函数找到第一个存在的文本字段并返回其长度，如果都不存在则返回0
     text_len = next((len(datum[field]) for field in text_fields if field in datum), 0)
+    
+    # 将文本长度缩放到0-1之间
+    # 如果maxLen为0（没有文本），则scaled_length为0
     scaled_length = text_len / maxLen if maxLen > 0 else 0
+    
     return [1, scaled_length]
 
 # %%
 def Q1(dataset):
-    # Implement...
+    """
+    问题1的主要函数：使用评论长度预测评分
+    实现简单的线性回归：rating = theta[0] + theta[1] * scaled_length
+    
+    这个函数：
+    1. 提取所有评论的长度特征
+    2. 使用最小二乘法拟合线性回归模型
+    3. 计算均方误差（MSE）
+    
+    Args:
+        dataset: 包含评论和评分的数据集
+        
+    Returns:
+        tuple: (theta, MSE)
+            - theta: 回归系数 [截距, 长度系数]
+            - MSE: 均方误差
+    """
+    # 获取数据集中最长评论的长度，用于特征缩放
     maxLen = getMaxLen(dataset)
+    
+    # 可能的评分字段名称
     rating_fields = ['rating', 'overall', 'stars', 'review/overall']
     
-    # Create feature matrix X and label vector Y using list comprehensions
+    # 创建特征矩阵X：每行是一个数据点的特征向量[1, scaled_length]
     X = [featureQ1(datum, maxLen) for datum in dataset]
+    
+    # 创建标签向量Y：每个数据点的评分
+    # next()函数找到第一个存在的评分字段，如果都不存在则返回0
     Y = [next((datum[field] for field in rating_fields if field in datum), 0) for datum in dataset]
     
-    # Convert to numpy arrays
+    # 转换为numpy数组，便于矩阵运算
     X, Y = numpy.array(X), numpy.array(Y)
     
-    # Use numpy.linalg.lstsq for linear regression (matching autograder)
+    # 使用numpy的最小二乘法求解线性回归
+    # lstsq求解方程 X * theta = Y，返回最优的theta参数
+    # rcond=None 使用新的默认值，避免FutureWarning
     theta, residuals, rank, s = numpy.linalg.lstsq(X, Y, rcond=None)
     
-    # Calculate MSE
+    # 计算均方误差（MSE）
+    # X @ theta 是矩阵乘法，计算预测值
+    # (Y - X @ theta) ** 2 计算每个预测误差的平方
+    # numpy.mean() 计算所有误差平方的平均值
     MSE = numpy.mean((Y - X @ theta) ** 2)
     
     return theta, MSE
