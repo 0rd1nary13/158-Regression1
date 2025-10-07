@@ -60,18 +60,18 @@ def featureQ2(datum, maxLen):
     scaled_length = text_len / maxLen if maxLen > 0 else 0
     
     # Get parsed date for weekday and month
-    parsed_date = datum.get('parsed_date')
-    if parsed_date:
-        weekday = parsed_date.weekday()  # 0=Monday, 6=Sunday
-        month = parsed_date.month  # 1-12
+    time_struct = datum.get('review/timeStruct')
+    if time_struct:
+        weekday = time_struct['wday']  # 0=Sunday, 6=Saturday
+        month = time_struct['mon']  # 1-12
     else:
         weekday, month = 0, 1  # Default values
     
     # One-hot encoding for weekday (7 features)
     day_features = [1 if weekday == i else 0 for i in range(7)]
     
-    # One-hot encoding for month (12 features)
-    month_features = [1 if month == i else 0 for i in range(1, 13)]
+    # One-hot encoding for month (10 features for months 1-10)
+    month_features = [1 if month == i else 0 for i in range(1, 11)]
     
     return [1, scaled_length] + day_features + month_features
 
@@ -111,10 +111,10 @@ def featureQ3(datum, maxLen):
     scaled_length = text_len / maxLen if maxLen > 0 else 0
     
     # Get parsed date for weekday and month
-    parsed_date = datum.get('parsed_date')
-    if parsed_date:
-        weekday = parsed_date.weekday()  # 0-6
-        month = parsed_date.month  # 1-12
+    time_struct = datum.get('review/timeStruct')
+    if time_struct:
+        weekday = time_struct['wday']  # 0=Sunday, 6=Saturday
+        month = time_struct['mon']  # 1-12
     else:
         weekday, month = 0, 1  # Default values
     
