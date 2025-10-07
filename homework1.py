@@ -126,11 +126,11 @@ def featureQ2(datum, maxLen):
     else:
         weekday, month = 1, 1  # Default values (Monday, January)
     
-    # One-hot encoding for weekday (6 features, dropping Sunday=0)
-    day_features = [1 if weekday == i else 0 for i in range(1, 7)]
+    # One-hot encoding for weekday (6 features, dropping Monday=1)
+    day_features = [1 if weekday == i else 0 for i in [0, 2, 3, 4, 5, 6]]
     
-    # One-hot encoding for month (11 features, dropping December=12)
-    month_features = [1 if month == i else 0 for i in range(1, 12)]
+    # One-hot encoding for month (11 features, dropping January=1)
+    month_features = [1 if month == i else 0 for i in range(2, 13)]
     
     return [1, scaled_length] + day_features + month_features
 
