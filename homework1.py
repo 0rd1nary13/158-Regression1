@@ -152,11 +152,13 @@ def Q2(dataset):
     # Convert to numpy arrays
     X2, Y2 = numpy.array(X2), numpy.array(Y2)
     
-    # Use numpy.linalg.lstsq for linear regression (matching autograder)
-    theta2, residuals2, rank2, s2 = numpy.linalg.lstsq(X2, Y2, rcond=None)
+    # Use scikit-learn's LinearRegression for linear regression
+    model = linear_model.LinearRegression(fit_intercept=False)
+    model.fit(X2, Y2)
     
     # Calculate MSE
-    MSE2 = numpy.mean((Y2 - X2 @ theta2) ** 2)
+    Y2_pred = model.predict(X2)
+    MSE2 = numpy.mean((Y2 - Y2_pred) ** 2)
     
     return X2, Y2, MSE2
 
@@ -196,11 +198,13 @@ def Q3(dataset):
     # Convert to numpy arrays
     X3, Y3 = numpy.array(X3), numpy.array(Y3)
     
-    # Use numpy.linalg.lstsq for linear regression (matching autograder)
-    theta3, residuals3, rank3, s3 = numpy.linalg.lstsq(X3, Y3, rcond=None)
+    # Use scikit-learn's LinearRegression for linear regression
+    model = linear_model.LinearRegression(fit_intercept=False)
+    model.fit(X3, Y3)
     
     # Calculate MSE
-    MSE3 = numpy.mean((Y3 - X3 @ theta3) ** 2)
+    Y3_pred = model.predict(X3)
+    MSE3 = numpy.mean((Y3 - Y3_pred) ** 2)
     
     return X3, Y3, MSE3
 
