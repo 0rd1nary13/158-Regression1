@@ -66,47 +66,48 @@ def featureQ1(datum, maxLen):
 # %%
 def Q1(dataset):
     """
-    问题1的主要函数：使用评论长度预测评分
-    实现简单的线性回归：rating = theta[0] + theta[1] * scaled_length
-    
-    这个函数：
-    1. 提取所有评论的长度特征
-    2. 使用scikit-learn的LinearRegression拟合线性回归模型
-    3. 计算均方误差（MSE）
-    
-    Args:
-        dataset: 包含评论和评分的数据集
-        
-    Returns:
-        tuple: (theta, MSE)
-            - theta: 回归系数 [截距, 长度系数]
-            - MSE: 均方误差
+    问题1的主要函数：使用评论长度预测评分（已修正数据过滤逻辑）
     """
-    # 获取数据集中最长评论的长度，用于特征缩放
+    # 步骤 1: 仍然从完整数据集中计算 maxLen，这能确保缩放标准一致
     maxLen = getMaxLen(dataset)
     
-    # 可能的评分字段名称
+    # 步骤 2: 创建两个空列表，用于存储有效的数据
+    X_filtered = []
+    Y_filtered = []
+    
+    # 定义可能的字段名
+    text_fields = ['review/text', 'text', 'review']
     rating_fields = ['rating', 'overall', 'stars', 'review/overall']
     
-    # 创建特征向量：每个数据点只有scaled_length一个特征
-    X = [featureQ1(datum, maxLen) for datum in dataset]
-    
-    # 创建标签向量Y：每个数据点的评分
-    # next()函数找到第一个存在的评分字段，如果都不存在则返回0
-    Y = [next((datum[field] for field in rating_fields if field in datum), 0) for datum in dataset]
-    
+    # 步骤 3: 遍历数据集，筛选出有效数据点
+    for datum in dataset:
+        # 尝试获取评论文本和评分
+        text = next((datum[field] for field in text_fields if field in datum), None)
+        rating = next((datum[field] for field in rating_fields if field in datum), None)
+        
+        # **关键：只有当文本和评分都存在时，才处理该数据点**
+        if text is not None and rating is not None:
+            # 计算缩放后的长度并添加到 X_filtered
+            scaled_length = len(text) / maxLen if maxLen > 0 else 0
+            X_filtered.append(scaled_length)
+            
+            # 将评分添加到 Y_filtered
+            Y_filtered.append(rating)
+
+    # 步骤 4: 使用筛选后的数据进行回归分析
     # 转换为numpy数组并reshape X为2D数组 (n_samples, 1)
-    X = numpy.array(X).reshape(-1, 1)
-    Y = numpy.array(Y)
+    X = numpy.array(X_filtered).reshape(-1, 1)
+    Y = numpy.array(Y_filtered)
+    
+    # 如果没有有效数据，返回一个默认值避免出错
+    if len(X) == 0:
+        return ([0, 0], 0)
     
     # 使用scikit-learn的LinearRegression拟合线性回归模型
-    # fit_intercept=True (默认) 让sklearn自动添加截距项
     model = linear_model.LinearRegression()
     model.fit(X, Y)
     
     # 获取回归系数: [theta_0, theta_1]
-    # theta_0 是截距 (model.intercept_)
-    # theta_1 是scaled_length的系数 (model.coef_[0])
     theta = [model.intercept_, model.coef_[0]]
     
     # 计算均方误差（MSE）
