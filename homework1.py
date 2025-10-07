@@ -32,16 +32,15 @@ def getMaxLen(dataset):
 def featureQ1(datum, maxLen):
     """
     为单个数据点创建特征向量
-    特征向量包含两个元素：[1, scaled_length]
-    - 1: 偏置项（bias term），用于线性回归的截距
-    - scaled_length: 缩放后的评论长度，范围在0-1之间
+    特征向量只包含scaled_length（缩放后的评论长度，范围在0-1之间）
+    sklearn会自动添加偏置项（intercept）
     
     Args:
         datum: 单个数据点（字典）
         maxLen: 数据集中最长评论的长度，用于缩放
         
     Returns:
-        list: 特征向量 [1, scaled_length]
+        float: 缩放后的长度特征
     """
     # 支持多种数据集格式的文本字段名称
     text_fields = ['review/text', 'text', 'review']
@@ -54,7 +53,7 @@ def featureQ1(datum, maxLen):
     # 如果maxLen为0（没有文本），则scaled_length为0
     scaled_length = text_len / maxLen if maxLen > 0 else 0
     
-    return [1, scaled_length]
+    return scaled_length
 
 # %%
 def Q1(dataset):
@@ -81,25 +80,26 @@ def Q1(dataset):
     # 可能的评分字段名称
     rating_fields = ['rating', 'overall', 'stars', 'review/overall']
     
-    # 创建特征矩阵X：每行是一个数据点的特征向量[1, scaled_length]
+    # 创建特征向量：每个数据点只有scaled_length一个特征
     X = [featureQ1(datum, maxLen) for datum in dataset]
     
     # 创建标签向量Y：每个数据点的评分
     # next()函数找到第一个存在的评分字段，如果都不存在则返回0
     Y = [next((datum[field] for field in rating_fields if field in datum), 0) for datum in dataset]
     
-    # 转换为numpy数组，便于矩阵运算
-    X, Y = numpy.array(X), numpy.array(Y)
+    # 转换为numpy数组并reshape X为2D数组 (n_samples, 1)
+    X = numpy.array(X).reshape(-1, 1)
+    Y = numpy.array(Y)
     
     # 使用scikit-learn的LinearRegression拟合线性回归模型
-    # fit_intercept=False 因为特征向量已经包含偏置项 [1, scaled_length]
-    model = linear_model.LinearRegression(fit_intercept=False)
+    # fit_intercept=True (默认) 让sklearn自动添加截距项
+    model = linear_model.LinearRegression()
     model.fit(X, Y)
     
     # 获取回归系数: [theta_0, theta_1]
-    # model.coef_[0] 对应偏置项 (theta_0)
-    # model.coef_[1] 对应scaled_length的系数 (theta_1)
-    theta = model.coef_
+    # theta_0 是截距 (model.intercept_)
+    # theta_1 是scaled_length的系数 (model.coef_[0])
+    theta = [model.intercept_, model.coef_[0]]
     
     # 计算均方误差（MSE）
     MSE = numpy.mean((Y - model.predict(X)) ** 2)
