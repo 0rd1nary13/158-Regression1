@@ -1,0 +1,23 @@
+# Large dataset files (too big for GitHub)
+datasets/beer_50000.json
+datasets/book_descriptions_50000.json
+datasets/book_images_5000.json
+datasets/fantasy_10000.json.gz
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
