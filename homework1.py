@@ -193,12 +193,13 @@ def Q4(dataset):
 ### Question 5
 
 # %%
-def featureQ5(datum):
+def featureQ5(datum, maxLen):
     # Implement
-    # Returns [1, length] for beer review classification
+    # Returns [1, scaled_length] for beer review classification
     text_fields = ['review/text', 'text', 'review']
     text_len = next((len(datum[field]) for field in text_fields if field in datum), 0)
-    return [1, text_len]
+    scaled_length = text_len / maxLen if maxLen > 0 else 0
+    return [1, scaled_length]
 
 # %%
 def Q5(dataset, feat_func):
@@ -207,8 +208,11 @@ def Q5(dataset, feat_func):
     rating_fields = ['rating', 'overall', 'stars', 'review/overall']
     y = [1 if next((datum[field] for field in rating_fields if field in datum), 0) >= 4 else 0 for datum in dataset]
     
+    # Get max length for scaling
+    maxLen = getMaxLen(dataset)
+    
     # Create feature matrix
-    X = [feat_func(datum) for datum in dataset]
+    X = [feat_func(datum, maxLen) for datum in dataset]
     X, y = numpy.array(X), numpy.array(y)
     
     # Train logistic regression with balanced class weights
@@ -238,7 +242,11 @@ def Q6(dataset):
     # Create binary labels and features
     rating_fields = ['rating', 'overall', 'stars', 'review/overall']
     y = [1 if next((datum[field] for field in rating_fields if field in datum), 0) >= 4 else 0 for datum in dataset]
-    X = [featureQ5(datum) for datum in dataset]
+    
+    # Get max length for scaling
+    maxLen = getMaxLen(dataset)
+    
+    X = [featureQ5(datum, maxLen) for datum in dataset]
     X, y = numpy.array(X), numpy.array(y)
     
     # Train logistic regression
@@ -267,11 +275,12 @@ def Q6(dataset):
 ### Question 7
 
 # %%
-def featureQ7(datum):
+def featureQ7(datum, maxLen):
     # Implement (any feature vector which improves performance over Q5)
-    # Enhanced features: length, beer style, ABV, appearance, aroma, taste, palate
+    # Enhanced features: scaled_length, beer style, ABV, appearance, aroma, taste, palate
     text_fields = ['review/text', 'text', 'review']
     text_len = next((len(datum[field]) for field in text_fields if field in datum), 0)
+    scaled_length = text_len / maxLen if maxLen > 0 else 0
     
     # Beer style (one-hot encoding for common styles)
     style = datum.get('beer/style', 'Unknown')
@@ -287,11 +296,11 @@ def featureQ7(datum):
     taste = datum.get('review/taste', 0)
     palate = datum.get('review/palate', 0)
     
-    # Text length features (log, sqrt)
-    log_length = numpy.log(text_len + 1)
-    sqrt_length = numpy.sqrt(text_len)
+    # Text length features (log, sqrt of scaled length)
+    log_length = numpy.log(scaled_length + 1)
+    sqrt_length = numpy.sqrt(scaled_length)
     
-    return [1, text_len, abv, appearance, aroma, taste, palate, log_length, sqrt_length] + style_features
+    return [1, scaled_length, abv, appearance, aroma, taste, palate, log_length, sqrt_length] + style_features
 
 # %%
 
