@@ -64,7 +64,7 @@ def Q1(dataset):
     
     这个函数：
     1. 提取所有评论的长度特征
-    2. 使用最小二乘法拟合线性回归模型
+    2. 使用scikit-learn的LinearRegression拟合线性回归模型
     3. 计算均方误差（MSE）
     
     Args:
@@ -78,30 +78,35 @@ def Q1(dataset):
     # 获取数据集中最长评论的长度，用于特征缩放
     maxLen = getMaxLen(dataset)
     
-    # 啤酒数据集中的评分字段名称
-    rating_fields = ['review/overall']
+    # 可能的评分字段名称
+    rating_fields = ['rating', 'overall', 'stars', 'review/overall']
     
     # 创建特征矩阵X：每行是一个数据点的特征向量[1, scaled_length]
     X = [featureQ1(datum, maxLen) for datum in dataset]
     
     # 创建标签向量Y：每个数据点的评分
-    # 使用review/overall作为目标变量
-    Y = [datum.get('review/overall', 0) for datum in dataset]
+    # next()函数找到第一个存在的评分字段，如果都不存在则返回0
+    Y = [next((datum[field] for field in rating_fields if field in datum), 0) for datum in dataset]
     
     # 转换为numpy数组，便于矩阵运算
-    X = numpy.array(X)
-    Y = numpy.array(Y)
+    X, Y = numpy.array(X), numpy.array(Y)
     
-    # 使用numpy的最小二乘法求解线性回归
-    # lstsq求解方程 X * theta = Y，返回最优的theta参数
-    # rcond=None 使用新的默认值，避免FutureWarning
-    theta, residuals, rank, s = numpy.linalg.lstsq(X, Y, rcond=None)
+    # 使用scikit-learn的LinearRegression拟合线性回归模型
+    # LinearRegression会自动处理截距项（fit_intercept=True by default）
+    # 但由于我们的特征向量已经包含了偏置项[1, scaled_length]，我们需要设置fit_intercept=False
+    model = linear_model.LinearRegression(fit_intercept=False)
+    model.fit(X, Y)
+    
+    # 获取回归系数
+    # coef_包含[截距, 长度系数]
+    theta = model.coef_
+    
+    # 使用模型进行预测
+    Y_pred = model.predict(X)
     
     # 计算均方误差（MSE）
-    # X @ theta 是矩阵乘法，计算预测值
-    # (Y - X @ theta) ** 2 计算每个预测误差的平方
-    # numpy.mean() 计算所有误差平方的平均值
-    MSE = numpy.mean((Y - X @ theta) ** 2)
+    # 使用numpy直接计算以保持一致性
+    MSE = numpy.mean((Y - Y_pred) ** 2)
     
     return theta, MSE
 
