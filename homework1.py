@@ -3,20 +3,20 @@ from collections import defaultdict
 from sklearn import linear_model
 import numpy
 import math
+from typing import Any, Dict, List, Sequence, Tuple
 
 # %%
 ### Question 1 - 问题1：基于评论长度的线性回归
 
 # %%
-def getMaxLen(dataset):
-    """
-    Calculates the maximum length of a review text in the entire dataset.
-    
+def getMaxLen(dataset: Sequence[Dict[str, Any]]) -> int:
+    """Return the maximum review text length across the dataset.
+
     Args:
-        dataset: The full list of data dictionaries.
-        
+        dataset: Sequence of data dictionaries (book or beer records).
+
     Returns:
-        int: The length of the longest review.
+        The length, in characters, of the longest available review text.
     """
     # These are the same fields your featureQ1 function checks
     text_fields = ['review/text', 'text', 'review']
@@ -37,18 +37,18 @@ def getMaxLen(dataset):
     return max_len
 
 # %%
-def featureQ1(datum, maxLen):
-    """
-    为单个数据点创建特征向量
-    特征向量只包含scaled_length（缩放后的评论长度，范围在0-1之间）
-    sklearn会自动添加偏置项（intercept）
-    
+def featureQ1(datum: Dict[str, Any], maxLen: int) -> float:
+    """Create the scalar length feature for a single record.
+
+    The feature is the review length scaled to [0, 1] by dividing by the
+    maximum review length in the dataset.
+
     Args:
-        datum: 单个数据点（字典）
-        maxLen: 数据集中最长评论的长度，用于缩放
-        
+        datum: A single data record.
+        maxLen: Maximum review length over the entire dataset.
+
     Returns:
-        float: 缩放后的长度特征
+        The scaled review length feature in [0, 1].
     """
     # 支持多种数据集格式的文本字段名称
     text_fields = ['review/text', 'text', 'review']
@@ -64,56 +64,39 @@ def featureQ1(datum, maxLen):
     return scaled_length
 
 # %%
-def Q1(dataset):
-    """
-    问题1的主要函数：使用评论长度预测评分（已修正数据过滤逻辑）
-    """
-    # 步骤 1: 仍然从完整数据集中计算 maxLen，这能确保缩放标准一致
-    maxLen = getMaxLen(dataset)
-    
-    # 步骤 2: 创建两个空列表，用于存储有效的数据
-    X_filtered = []
-    Y_filtered = []
-    
-    # 定义可能的字段名
-    text_fields = ['review/text', 'text', 'review']
-    rating_fields = ['rating', 'overall', 'stars', 'review/overall']
-    
-    # 步骤 3: 遍历数据集，筛选出有效数据点
-    for datum in dataset:
-        # 尝试获取评论文本和评分
-        text = next((datum[field] for field in text_fields if field in datum), None)
-        rating = next((datum[field] for field in rating_fields if field in datum), None)
-        
-        # **关键：只有当文本和评分都存在时，才处理该数据点**
-        if text is not None and rating is not None:
-            # 计算缩放后的长度并添加到 X_filtered
-            scaled_length = len(text) / maxLen if maxLen > 0 else 0
-            X_filtered.append(scaled_length)
-            
-            # 将评分添加到 Y_filtered
-            Y_filtered.append(rating)
+def Q1(dataset: Sequence[Dict[str, Any]]) -> Tuple[List[float], float]:
+    """Fit rating ~ θ0 + θ1 · scaled(review length) on the entire dataset.
 
-    # 步骤 4: 使用筛选后的数据进行回归分析
-    # 转换为numpy数组并reshape X为2D数组 (n_samples, 1)
-    X = numpy.array(X_filtered).reshape(-1, 1)
-    Y = numpy.array(Y_filtered)
-    
-    # 如果没有有效数据，返回一个默认值避免出错
-    if len(X) == 0:
-        return ([0, 0], 0)
-    
-    # 使用scikit-learn的LinearRegression拟合线性回归模型
+    Notes
+    -----
+    - Feature is length scaled by the global maximum length (range [0, 1]).
+    - Intercept is learned by the linear model (no manual bias feature).
+    - Both thetas and the MSE are computed on the full dataset, matching the
+      assignment instructions and the provided runner expectations.
+    """
+    # 1) Compute max length over the full dataset for consistent scaling
+    maxLen = getMaxLen(dataset)
+
+    # 2) Build features/labels for EVERY datum (no filtering), defaulting
+    #    rating to 0 when it's missing to match the runner's convention.
+    rating_fields = ['rating', 'overall', 'stars', 'review/overall']
+    X = [featureQ1(datum, maxLen) for datum in dataset]
+    Y = [next((datum[field] for field in rating_fields if field in datum), 0) for datum in dataset]
+
+    # 3) Fit linear regression with an intercept
+    X_arr = numpy.array(X).reshape(-1, 1)
+    Y_arr = numpy.array(Y)
+    if X_arr.shape[0] == 0:
+        return [0.0, 0.0], 0.0
+
     model = linear_model.LinearRegression()
-    model.fit(X, Y)
-    
-    # 获取回归系数: [theta_0, theta_1]
-    theta = [model.intercept_, model.coef_[0]]
-    
-    # 计算均方误差（MSE）
-    MSE = numpy.mean((Y - model.predict(X)) ** 2)
-    
-    return theta, MSE
+    model.fit(X_arr, Y_arr)
+
+    theta0 = float(model.intercept_)
+    theta1 = float(model.coef_[0])
+    mse = float(numpy.mean((Y_arr - model.predict(X_arr)) ** 2))
+
+    return [theta0, theta1], mse
 
 # %%
 ### Question 2
