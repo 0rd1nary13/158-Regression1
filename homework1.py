@@ -21,18 +21,14 @@ def getMaxLen(dataset: Sequence[Dict[str, Any]]) -> int:
     # These are the same fields your featureQ1 function checks
     text_fields = ['review/text', 'text', 'review']
     
-    # Initialize max_len to 0
+    # Scan all candidate text fields across all records and take the global max
     max_len = 0
-    
-    # Check every single item in the dataset
     for datum in dataset:
-        # Find the length of the text field for the current item.
-        # Defaults to 0 if no text field is found.
-        current_len = next((len(datum[field]) for field in text_fields if field in datum), 0)
-        
-        # Update max_len if the current one is longer
-        if current_len > max_len:
-            max_len = current_len
+        for field in text_fields:
+            if field in datum:
+                current_len = len(datum[field])
+                if current_len > max_len:
+                    max_len = current_len
             
     return max_len
 
